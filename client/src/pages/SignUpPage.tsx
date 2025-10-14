@@ -6,9 +6,10 @@ import delay from "@/lib/delay";
 import { zodResolver } from "@hookform/resolvers/zod/src/zod.js";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import z from "zod";
+import apiClient from "@/config/axios.ts";
 
 const formSchema = z
   .object({
@@ -30,6 +31,7 @@ const formSchema = z
   });
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const form = useForm({
@@ -46,12 +48,20 @@ const SignUpPage = () => {
     setIsLoading(true);
     try {
       await delay(500);
-      toast("Signup successful", {
+      const { data } = await apiClient.post("/auth/register", values);
+      toast(data.message, {
+        onAutoClose: () => {
+          setIsLoading(false);
+          navigate("/");
+        },
+      });
+    } catch (error: any) {
+      toast(error.response.data.message, {
         onAutoClose: () => {
           setIsLoading(false);
         },
       });
-    } catch (error) {}
+    }
     console.log(values);
   };
 
@@ -97,7 +107,6 @@ const SignUpPage = () => {
                         placeholder="Email"
                         {...field}
                         autoComplete="off"
-                        autoFocus
                       />
                     </FormControl>
                     <FormMessage />
@@ -156,7 +165,7 @@ const SignUpPage = () => {
                 <p className="text-muted-foreground text-center">
                   Already have an account?{" "}
                   <Link
-                    to="/signup"
+                    to="/"
                     className="underline underline-offset-4"
                   >
                     Login

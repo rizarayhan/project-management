@@ -11,6 +11,7 @@ import Loading from "./Loading";
 import delay from "@/lib/delay";
 import { toast } from "sonner";
 import { Link } from "react-router";
+import apiClient from "@/config/axios";
 
 const formSchema = z.object({
   email: z.string().email().min(1, {
@@ -35,14 +36,19 @@ export function LoginForm({ className }: React.ComponentProps<"form">) {
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      await delay(1000);
-      toast("Login success", {
+      await delay(500);
+      const { data } = await apiClient.post("auth/login", values);
+      toast(data.message, {
         onAutoClose: () => {
           setIsLoading(false);
         },
       });
-    } catch (error) {}
-    console.log(values);
+    } catch (error: any) {
+      console.log(error);
+      toast(error?.response.data.message, {
+        onAutoClose: () => setIsLoading(false),
+      });
+    }
   };
   return (
     <div className={cn("flex flex-col gap-6", className)}>
