@@ -4,8 +4,17 @@ import "./index.css";
 import LoginPage from "./pages/LoginPage.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
 import SignUpPage from "./pages/SignUpPage.tsx";
+import AuthLayout from "./pages/layout/AuthLayout.tsx";
+import DashboardPage from "./pages/DashboardPage.tsx";
+import PublicRoute from "./routes/PublicRoute.tsx";
+import ProjectPage from "./pages/projects/ProjectPage.tsx";
 
 const root = document.getElementById("root") as HTMLElement;
+
+const publicRoutes = [
+  { path: "/", element: <LoginPage /> },
+  { path: "/signup", element: <SignUpPage /> },
+];
 
 ReactDOM.createRoot(root).render(
   <BrowserRouter>
@@ -14,22 +23,23 @@ ReactDOM.createRoot(root).render(
       position="bottom-right"
     />
     <Routes>
-      <Route
-        path="/"
-        element={<LoginPage />}
-      />
-      <Route
-        path="/signup"
-        element={<SignUpPage />}
-      />
-      <Route
-        path="/test"
-        element={
-          <>
-            <h1>Halo ini test</h1>
-          </>
-        }
-      />
+      {publicRoutes.map(({ path, element }) => (
+        <Route
+          key={path}
+          path={path}
+          element={<PublicRoute>{element}</PublicRoute>}
+        />
+      ))}
+      <Route element={<AuthLayout />}>
+        <Route
+          path="/dashboard"
+          element={<DashboardPage />}
+        />
+        <Route
+          path="/projects"
+          element={<ProjectPage />}
+        />
+      </Route>
     </Routes>
   </BrowserRouter>
 );

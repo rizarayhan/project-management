@@ -101,3 +101,31 @@ export const login = async (req, res) => {
     });
   }
 };
+
+export const whoami = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    return res.status(200).json({
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({
+      message: "Login successfully, Please wait you are being redirected to login page",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
