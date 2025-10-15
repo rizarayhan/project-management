@@ -8,6 +8,6 @@ const route = Router();
 
 route.use("/auth", authenticationRoute);
 route.use("/tags", tagsRoute);
-route.use("/project", verifyToken, projectRoute);
+route.use("/projects", verifyToken, projectRoute);
 
 export default route;

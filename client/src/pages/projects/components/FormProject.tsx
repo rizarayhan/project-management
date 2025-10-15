@@ -13,6 +13,8 @@ import apiClient from "@/config/axios";
 import { toast } from "sonner";
 import ReactSelect from "react-select";
 import delay from "@/lib/delay";
+import type { Project } from "@/types/type";
+
 interface TagsOption {
   label: string;
   value: string;
@@ -38,7 +40,12 @@ const formSchema = z
     }
   });
 
-const FormProject = () => {
+interface FormProjectProps {
+  project?: Project;
+  getProjects: () => void;
+}
+
+const FormProject = ({ project, getProjects }: FormProjectProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [tags, setTags] = useState<TagsOption[]>([]);
@@ -68,23 +75,27 @@ const FormProject = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      projectId: null,
-      title: "",
-      description: "",
-      priority: "",
-      tags: [],
-      dueDate: "",
+      projectId: project?._id || null,
+      title: project?.title || "",
+      description: project?.description || "",
+      priority: project?.priority || "",
+      tags: project?.tags || [],
+      dueDate: project?.dueDate.slice(0, 10) || "",
     },
   });
+
+  const url = project ? `/projects/${project._id}/update` : "/projects";
+  const method = project ? "put" : "post";
 
   const handleForm = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
       await delay(500);
-      const { data } = await apiClient.post("/project", values);
+      const { data } = await apiClient[method](url, values);
       toast.success(data.message, {
         onAutoClose: () => {
           setIsOpen(false);
+          getProjects();
         },
       });
       setIsLoading(false);
@@ -104,7 +115,12 @@ const FormProject = () => {
       onOpenChange={setIsOpen}
     >
       <DialogTrigger asChild>
-        <Button>New Project</Button>
+        <Button
+          variant={"ghost"}
+          className={project ? "text-blue-800 hover:bg-white transition-all" : ""}
+        >
+          {project ? "Edit Project" : "Create Project"}
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -190,6 +206,7 @@ const FormProject = () => {
                             isMulti
                             isClearable
                             placeholder="Select tags"
+                            value={tags.filter((tag) => field.value.includes(tag.value))}
                             className="capitalize"
                             onChange={(value) => {
                               field.onChange(value ? value.map((item: { value: string }) => item.value) : []);
