@@ -9,9 +9,13 @@ import { id } from "date-fns/locale";
 import { Calendar, Text, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import ReadMore from "./components/ReadMore";
+import { Button } from "@/components/ui/button";
+import NoDataPage from "@/components/NoDataPage";
 
 const MyInvitationsPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isConfirm, setIsConfirm] = useState<boolean>(false);
   const [invitations, setInvitations] = useState<Invitations[]>([]);
 
   const getInvitations = async () => {
@@ -19,8 +23,6 @@ const MyInvitationsPage = () => {
     try {
       await delay(500);
       const { data } = await apiClient.get("invitation/my-invitations");
-      console.log(data);
-
       setInvitations(data.invitations);
       setIsLoading(false);
     } catch (error: any) {
@@ -38,12 +40,35 @@ const MyInvitationsPage = () => {
   }, []);
 
   if (isLoading) return <LoadingPage />;
+  if (invitations.length === 0) return <NoDataPage text="No Invitations Found" />;
 
   const trimText = (text: string, limit: number) => {
     if (text.length > limit) {
       return text.substring(0, limit) + "...";
     }
     return text;
+  };
+
+  const handleAction = async (id: string, status: string) => {
+    setIsConfirm(true);
+    try {
+      await delay(500);
+      const { data } = await apiClient.post("/invitation/confirm", {
+        invitationId: id,
+        status: status,
+      });
+      toast.success(data.message, {
+        onAutoClose: () => {
+          getInvitations();
+          setIsConfirm(false);
+        },
+      });
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error?.response.data.message, {
+        onAutoClose: () => setIsConfirm(false),
+      });
+    }
   };
 
   return (
@@ -64,23 +89,35 @@ const MyInvitationsPage = () => {
             <MetaItem
               label="Due Date"
               icon={<Calendar size={16} />}
-              content={
-                <>
-                  <p>{format(new Date(invitation.project.dueDate), "EEEE, dd MMM yyyy", { locale: id })}</p>
-                </>
-              }
+              content={format(new Date(invitation.project.dueDate), "EEEE, dd MMM yyyy", { locale: id })}
             />
             <MetaItem
               label="Description"
               icon={<Text size={16} />}
               isBlock
               isBold
-              content={
-                <>
-                  <p>{trimText(invitation.project.description, 100)}</p>
-                </>
-              }
+              content={trimText(invitation.project.description, 100)}
             />
+            <div className="flex justify-end mb-3">{invitation.project.description.length > 100 && <ReadMore description={invitation.project.description} />}</div>
+            <div className="flex justify-between gap-x-2">
+              <Button
+                size={"sm"}
+                className="w-3/5"
+                onClick={() => handleAction(invitation._id, "accepted")}
+                disabled={isConfirm}
+              >
+                Accept
+              </Button>
+              <Button
+                size={"sm"}
+                variant={"outline"}
+                className="w-2/5"
+                onClick={() => handleAction(invitation._id, "declined")}
+                disabled={isConfirm}
+              >
+                Decline
+              </Button>
+            </div>
           </div>
         ))}
       </div>
