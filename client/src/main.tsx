@@ -8,6 +8,8 @@ import AuthLayout from "./pages/layout/AuthLayout.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import PublicRoute from "./routes/PublicRoute.tsx";
 import ProjectPage from "./pages/projects/ProjectPage.tsx";
+import ManageJobsPage from "./pages/manageJobs/ManageJobsPage.tsx";
+import MyInvitationsPage from "./pages/myInvitations/MyInvitationsPage.tsx";
 
 const root = document.getElementById("root") as HTMLElement;
 
@@ -38,6 +40,16 @@ ReactDOM.createRoot(root).render(
         <Route
           path="/projects"
           element={<ProjectPage />}
+        />
+        <Route path="/manage-jobs">
+          <Route
+            path=":projectId"
+            element={<ManageJobsPage />}
+          />
+        </Route>
+        <Route
+          path="/my-invitations"
+          element={<MyInvitationsPage />}
         />
       </Route>
     </Routes>

@@ -126,3 +126,73 @@ export const deleteProject = async (req, res) => {
     });
   }
 };
+
+export const getProjectById = async (req, res) => {
+  const { projectId } = req.params;
+  try {
+    const project = await Project.findById(projectId);
+    if (!projectId) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const isOwner = project.owner.toString() === req.user._id.toString();
+    const isCollaborator = project.collaborators.some((collaborator) => collaborator.toString === req.user._id.toString());
+    if (!isOwner && isCollaborator) {
+      return res.status(401).json({ message: "You are not authorized to view this project" });
+    }
+
+    await project.populate({
+      path: "collaborators",
+      select: "name email -_id",
+    });
+
+    res.status(200).json({
+      message: "Project fetch successfully",
+      project,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+export const deleteCollaborator = async (req, res) => {
+  const { projectId } = req.params;
+  const { email } = req.body;
+
+  try {
+    const project = await Project.findById(projectId).populate([
+      {
+        path: "collaborators",
+        select: "name email",
+      },
+      {
+        path: "owner",
+        select: "name email",
+      },
+    ]);
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    if (project.owner.email.toString() === email) {
+      return res.status(400).json({ message: "You cannot remove the owner of the project" });
+    }
+
+    await project.save();
+    res.status(200).json({
+      message: "Collaborator deleted successfully",
+      project,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};

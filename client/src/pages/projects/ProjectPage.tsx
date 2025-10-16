@@ -5,10 +5,11 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import delay from "@/lib/delay";
 import { type Project } from "@/types/type.ts";
-import { Box, CalendarDays, CheckCircle, ClipboardList, Flag } from "lucide-react";
+import { ArrowRight, Box, CalendarDays, CheckCircle, ClipboardList, Flag } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import DeleteProject from "./components/DeleteProject";
+import { Link } from "react-router";
 
 const ProjectPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -18,9 +19,9 @@ const ProjectPage = () => {
       await delay(500);
       const { data } = await apiClient.get("/projects");
       setProjects(data.projects);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
-      toast.error("Error gettiing projects");
+      toast.error("Error getting projects");
     }
   };
 
@@ -112,7 +113,15 @@ const ProjectPage = () => {
                     getProjects={getProjects}
                   />
                 </div>
-                <div className="text-right">Manage job</div>
+                <div className="text-right">
+                  <Link
+                    to={`/manage-jobs/${project._id}`}
+                    className="hover:underline text-blue-800 transition-all gap-x-1 items-center flex"
+                  >
+                    Manage Job
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
